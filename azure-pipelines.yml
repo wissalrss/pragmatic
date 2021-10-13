@@ -1,0 +1,42 @@
+pool:
+  name: Azure Pipelines
+  demands: npm
+
+#Your build pipeline references a secret variable named ‘deployment.token’. Create or edit the build pipeline for this YAML file, define the variable on the Variables tab, and then select the option to make it secret. See https://go.microsoft.com/fwlink/?linkid=865972
+
+steps:
+- task: Npm@1
+  displayName: 'npm install'
+  inputs:
+    workingDir: pragmatickdev
+    verbose: false
+
+- task: Npm@1
+  displayName: 'npm build'
+  inputs:
+    command: custom
+    workingDir: pragmatickdev
+    verbose: true
+    customCommand: 'run ci'
+
+- powershell: |
+   # Write your PowerShell commands here.
+   
+   Write-Host "Hello World"
+   
+   ls
+  displayName: 'PowerShell Script'
+
+- task: PublishPipelineArtifact@1
+  displayName: 'Publish Pipeline Artifact'
+  inputs:
+    targetPath: pragmatickdev/dist/pragmatickdev
+    artifact: website
+
+- task: AzureStaticWebApp@0
+  displayName: 'Static Web App: '
+  inputs:
+    app_location: /
+    skip_app_build: true
+    azure_static_web_apps_api_token: '$(deployment.token)'
+
